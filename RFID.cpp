@@ -1,10 +1,7 @@
 #include "RFID.hpp"
 
-RFID::RFID(uint8_t ss_pin, uint8_t rst_pin)
-{
-  MFRC522 rfid(ss_pin, rst_pin);
-  _rfid = rfid;
-}
+// RFID sensor initialization
+RFID::RFID(uint8_t ss_pin, uint8_t rst_pin) : _rfid(ss_pin, rst_pin) { }
 
 void RFID::begin()
 {
@@ -14,11 +11,13 @@ void RFID::begin()
 
 String RFID::read()
 {
+  // Checks if there is a card in the sensor and if so, if it is a new card
   if (!_rfid.PICC_IsNewCardPresent() || !_rfid.PICC_ReadCardSerial())
   {
     return "";
   }
 
+  // Converts data from binary to hexadecimal separated by colons
   String idData = "";
   for (byte i = 0; i < _rfid.uid.size; i++)
   {
