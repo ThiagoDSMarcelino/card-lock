@@ -1,32 +1,73 @@
 #include "RFID.hpp"
 
 // RFID sensor initialization
-RFID::RFID(uint8_t ss_pin, uint8_t rst_pin) : _rfid(ss_pin, rst_pin) { }
+RFID::RFID(uint8_t ss_pin, uint8_t rst_pin) : _rfid(ss_pin, rst_pin)
+{
+  for (byte i = 0; i < 6; i++)
+  {
+    _key.keyByte[i] = 0xFF;
+  }
+}
 
 void RFID::begin()
 {
   SPI.begin();
-  _rfid.PCD_Init();  
+  _rfid.PCD_Init();
 }
 
-String RFID::read()
+String RFID::getData()
 {
-  // Checks if there is a card in the sensor and if so, if it is a new card
+    return _data;
+}
+
+Results RFID::write(int blockNum, byte blockData[])
+{
   if (!_rfid.PICC_IsNewCardPresent() || !_rfid.PICC_ReadCardSerial())
   {
-    return "";
+    return Results::Nothing;
   }
 
-  // Converts data from binary to hexadecimal separated by colons
-  String idData = "";
-  for (byte i = 0; i < _rfid.uid.size; i++)
+  _status = _rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, blockNum, &_key, &(_rfid.uid));
+  if (_status != MFRC522::STATUS_OK)
   {
-    idData += (_rfid.uid.uidByte[i] < 0x10 ? "0" : "") + String(_rfid.uid.uidByte[i], HEX) + (i!=3 ? ":" : "");
+    return Results::AuthenticationError;
   }
-  idData.toUpperCase();
-  
-  _rfid.PICC_HaltA();
-  _rfid.PCD_StopCrypto1();
 
-  return idData;
+  _status = _rfid.MIFARE_Write(blockNum, blockData, 16);
+  if (_status != MFRC522::STATUS_OK)
+  {
+    return Results::WritingError;
+  }
+
+  return Results::Successful;
+}
+
+Results RFID::read(int blockNum)
+{
+  if (!_rfid.PICC_IsNewCardPresent() || !_rfid.PICC_ReadCardSerial())
+  {
+    return Results::Nothing;
+  }
+
+  _status = _rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, blockNum, &_key, &(_rfid.uid));
+  if (_status != MFRC522::STATUS_OK)
+  {
+     return Results::AuthenticationError;
+  }
+
+  byte bufferSize = 18;
+  byte readBlockData[bufferSize];
+  _status = _rfid.MIFARE_Read(blockNum, readBlockData, &bufferSize);
+  if (_status != MFRC522::STATUS_OK)
+  {
+    return Results::ReadingError;
+  }
+
+  _data = "";
+  for (int i = 0 ; i < 16 ; i++)
+  {
+   _data += readBlockData[i];
+  }
+  
+  return Results::Successful;
 }
