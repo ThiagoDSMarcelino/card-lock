@@ -15,6 +15,15 @@ void RFID::begin()
   _rfid.PCD_Init();
 }
 
+bool RFID::hasCard()
+{
+  if (!_rfid.PICC_IsNewCardPresent() || !_rfid.PICC_ReadCardSerial())
+  {
+    return false;
+  }
+  return true;
+}
+
 String RFID::getData()
 {
     return _data;
@@ -22,11 +31,6 @@ String RFID::getData()
 
 Results RFID::write(int blockNum, byte blockData[])
 {
-  if (!_rfid.PICC_IsNewCardPresent() || !_rfid.PICC_ReadCardSerial())
-  {
-    return Results::Nothing;
-  }
-
   _status = _rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, blockNum, &_key, &(_rfid.uid));
   if (_status != MFRC522::STATUS_OK)
   {
@@ -44,22 +48,12 @@ Results RFID::write(int blockNum, byte blockData[])
 
 Results RFID::read(int blockNum)
 {
-  if (!_rfid.PICC_IsNewCardPresent() || !_rfid.PICC_ReadCardSerial())
-  {
-    return Results::Nothing;
-  }
-
-  _status = _rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, blockNum, &_key, &(_rfid.uid));
-  if (_status != MFRC522::STATUS_OK)
-  {
-     return Results::AuthenticationError;
-  }
-
   byte bufferSize = 18;
   byte readBlockData[bufferSize];
   _status = _rfid.MIFARE_Read(blockNum, readBlockData, &bufferSize);
   if (_status != MFRC522::STATUS_OK)
   {
+    Serial.println(_status);
     return Results::ReadingError;
   }
 
