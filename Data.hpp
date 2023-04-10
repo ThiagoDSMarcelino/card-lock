@@ -1,7 +1,9 @@
-String usersName[] = {
-  "Thiago", "Gabu"
+struct Collaborator {
+  String Name;
+  String EDV;
 };
 
-String userEDV[] = {
-  "92900548", "1234"
-};
+Collaborator sla[2] = {
+  Collaborator { "Thiago", "92900548" },
+  Collaborator { "João", "124124" }
+}

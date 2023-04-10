@@ -7,8 +7,7 @@ enum Results
   Successful,
   AuthenticationError,
   ReadingError,
-  WritingError,
-  Nothing
+  WritingError
 };
 
 class RFID
