@@ -3,7 +3,7 @@ struct Collaborator {
   String EDV;
 };
 
-Collaborator sla[2] = {
+Collaborator collaboratorData[2] = {
   Collaborator { "Thiago", "92900548" },
-  Collaborator { "João", "124124" }
-}
+  Collaborator { "Gabrielle", "92900521" }
+};

@@ -17,10 +17,11 @@ class RFID
     void begin();
     bool hasCard();
     String getData();
-    Results write(int blockNum, byte blockData[]);
-    Results read(int blockNum);
+    Results write(byte blockData[]);
+    Results read();
   
   private:
+    int _blockNum = 2;
     String _data = "";
     MFRC522 _rfid;
     MFRC522::MIFARE_Key _key;
